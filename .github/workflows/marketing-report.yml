@@ -1,6 +1,9 @@
 name: 마케팅 성과 리포트
 
 on:
+  schedule:
+    # 매주 월요일 오전 10시 KST (= 01:00 UTC)
+    - cron: '0 1 * * 1'
   workflow_dispatch:
     inputs:
       channel:
@@ -33,10 +36,13 @@ jobs:
       - name: 마케팅 리포트 전송
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_CHANNEL: ${{ github.event.inputs.channel }}
+          SLACK_CHANNEL: ${{ github.event.inputs.channel || 'C0AB756M291' }}
         run: |
-          if [ "${{ github.event.inputs.test_mode }}" = "true" ]; then
+          CHANNEL="${{ github.event.inputs.channel || 'C0AB756M291' }}"
+          TEST_MODE="${{ github.event.inputs.test_mode }}"
+
+          if [ "$TEST_MODE" = "true" ]; then
             python analytics/marketing_report.py --test
           else
-            python analytics/marketing_report.py --channel "${{ github.event.inputs.channel }}"
+            python analytics/marketing_report.py --channel "$CHANNEL"
           fi
