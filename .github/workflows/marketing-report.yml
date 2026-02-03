@@ -1,0 +1,42 @@
+name: 마케팅 성과 리포트
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: 'Slack 채널 ID'
+        required: false
+        default: 'C0AB756M291'
+      test_mode:
+        description: '테스트 모드 (Slack 전송 안함)'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  marketing-report:
+    name: 마케팅 성과 분석 → Slack
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 의존성 설치
+        run: pip install slack-sdk python-dotenv
+
+      - name: 마케팅 리포트 전송
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL: ${{ github.event.inputs.channel }}
+        run: |
+          if [ "${{ github.event.inputs.test_mode }}" = "true" ]; then
+            python analytics/marketing_report.py --test
+          else
+            python analytics/marketing_report.py --channel "${{ github.event.inputs.channel }}"
+          fi
